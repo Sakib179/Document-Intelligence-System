@@ -1,0 +1,75 @@
+{
+  "name": "document-intelligence",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "npm@11.16.0",
+  "engines": {
+    "node": ">=24 <25",
+    "npm": ">=11 <12"
+  },
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "setup:env": "node scripts/setup-env.mjs",
+    "build:packages": "tsc -b packages/contracts packages/core packages/finance packages/database",
+    "build": "npm run build:packages && npm run build --workspace @doc/api && npm run build --workspace @doc/worker && npm run build --workspace @doc/web",
+    "typecheck": "npm run build:packages && tsc -b apps/api apps/worker && npm run typecheck --workspace @doc/web && tsc -p tsconfig.tools.json",
+    "dev": "npm run build:packages && concurrently --kill-others --names api,worker,web,processor 'npm run dev --workspace @doc/api' 'npm run dev --workspace @doc/worker' 'npm run dev --workspace @doc/web' 'npm run dev:processor'",
+    "dev:api": "npm run build:packages && npm run dev --workspace @doc/api",
+    "dev:worker": "npm run build:packages && npm run dev --workspace @doc/worker",
+    "dev:web": "npm run build:packages && npm run dev --workspace @doc/web",
+    "dev:processor": "node scripts/python.mjs dev",
+    "start": "concurrently --kill-others --names api,worker,web,processor 'npm run start --workspace @doc/api' 'npm run start --workspace @doc/worker' 'npm run start --workspace @doc/web' 'npm run start:processor'",
+    "start:processor": "node scripts/python.mjs serve",
+    "infra:config": "docker compose --env-file .env -f infra/compose.yaml config --quiet",
+    "infra:up": "docker compose --env-file .env -f infra/compose.yaml up --build --detach --wait --wait-timeout 120 && npm run storage:init",
+    "infra:down": "docker compose --env-file .env -f infra/compose.yaml down",
+    "infra:status": "docker compose --env-file .env -f infra/compose.yaml ps",
+    "storage:init": "npm run build:packages && tsx scripts/bootstrap-storage.ts",
+    "db:setup": "npm run setup:env && npm run build:packages && tsx scripts/database.ts setup",
+    "db:migrate": "npm run build:packages && tsx scripts/database.ts migrate",
+    "db:status": "npm run build:packages && tsx scripts/database.ts status",
+    "db:rollback": "npm run build:packages && tsx scripts/database.ts rollback",
+    "db:seed": "npm run build:packages && tsx scripts/database.ts seed",
+    "test:ingestion": "npm run build:packages && tsx --test --test-concurrency=1 tests/ingestion/ingestion.test.ts",
+    "test:workflow": "npm run test:ingestion",
+    "test:frontend": "npm run build && DOC_FRONTEND_TESTS=1 npm run test:ingestion",
+    "test:database": "npm run build:packages && tsx --test --test-concurrency=1 tests/database/schema.test.ts",
+    "test:financial": "npm run build:packages && tsx --test --test-concurrency=1 tests/financial/financial.test.ts",
+    "test:search": "npm run build:packages && tsx --test --test-concurrency=1 tests/search/search.test.ts",
+    "embeddings:download": "node scripts/python.mjs embeddings-download",
+    "benchmark:embeddings": "npm run build:packages && tsx scripts/benchmark-embeddings.ts",
+    "test:embeddings:live": "npm run build:packages && tsx --test scripts/check-embeddings.ts",
+    "test": "npm run build:packages && vitest run && npm run test:python",
+    "test:node": "npm run build:packages && vitest run",
+    "test:python": "node scripts/python.mjs test",
+    "evaluate:processor": "node scripts/python.mjs evaluate",
+    "evaluate:segmentation": "npm run build:packages && tsx scripts/evaluate-understanding.ts",
+    "processor:doctor": "node scripts/python.mjs doctor",
+    "test:integration": "npm run build:packages && tsx scripts/check-foundation.ts"
+  },
+  "overrides": {
+    "node-pg-migrate": {
+      "glob": "14.0.6"
+    }
+  },
+  "devDependencies": {
+    "@aws-sdk/client-s3": "3.1169.0",
+    "@doc/contracts": "0.1.0",
+    "@doc/core": "0.1.0",
+    "@doc/database": "0.1.0",
+    "@doc/finance": "0.1.0",
+    "@types/node": "24.19.2",
+    "@types/pg": "8.23.1",
+    "bullmq": "5.81.5",
+    "concurrently": "10.0.7",
+    "dotenv": "18.0.10",
+    "playwright-core": "1.65.1",
+    "tsx": "4.23.15",
+    "typescript": "5.9.3",
+    "vitest": "5.1.0"
+  }
+}

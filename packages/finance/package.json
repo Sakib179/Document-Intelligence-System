@@ -1,0 +1,6 @@
+{
+  "name":"@doc/finance", "version":"0.1.0", "private":true, "type":"module",
+  "exports": {".":{"types":"./dist/index.d.ts","import":"./dist/index.js"}},
+  "scripts":{"build":"tsc -b"},
+  "dependencies":{"@doc/contracts":"0.1.0","decimal.js":"10.6.0"}
+}

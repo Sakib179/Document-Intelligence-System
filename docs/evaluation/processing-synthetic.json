@@ -1,0 +1,130 @@
+{
+  "evaluation": "synthetic-printed-English-v1",
+  "measured_at": "2026-11-15T10:07:54.056627+00:00",
+  "scope": "Eight clean synthetic OCR pages from the same printed fixture across image formats and a scanned PDF; no real-world accuracy estimate.",
+  "normalization": "Unicode word characters, casefolded, whitespace collapsed; edit distance includes substitutions/deletions/insertions.",
+  "ocr_capabilities": {
+    "available": true,
+    "executable": "/opt/homebrew/bin/tesseract",
+    "version": "tesseract 5.5.4",
+    "installed_languages": [
+      "eng",
+      "osd"
+    ],
+    "requested_languages": [
+      "eng",
+      "ben"
+    ],
+    "active_languages": [
+      "eng"
+    ],
+    "missing_languages": [
+      "ben"
+    ],
+    "orientation_available": true
+  },
+  "sample_count": 8,
+  "word_error_rate": 0.0,
+  "character_error_rate": 0.0,
+  "elapsed_seconds": 1.516,
+  "bangla_evaluated": false,
+  "bangla_reason": "No Bangla OCR ground-truth fixture is included; missing language packs are reported in capabilities.",
+  "samples": [
+    {
+      "fixture": "ocr.jpg",
+      "page": 1,
+      "source_sha256": "50fefdb404dc75636c3984652dd230ed369a1f463dfb759d3102def6dbac7606",
+      "reference_text": "INVOICE 2026\nSupplier Example Company\nTotal 1250 USD",
+      "recognized_text": "INVOICE 2026\nSupplier Example Company\nTotal 1250 USD",
+      "word_errors": 0,
+      "reference_words": 8,
+      "character_errors": 0,
+      "reference_characters": 52,
+      "mean_ocr_confidence": 0.9575
+    },
+    {
+      "fixture": "ocr.jpeg",
+      "page": 1,
+      "source_sha256": "50fefdb404dc75636c3984652dd230ed369a1f463dfb759d3102def6dbac7606",
+      "reference_text": "INVOICE 2026\nSupplier Example Company\nTotal 1250 USD",
+      "recognized_text": "INVOICE 2026\nSupplier Example Company\nTotal 1250 USD",
+      "word_errors": 0,
+      "reference_words": 8,
+      "character_errors": 0,
+      "reference_characters": 52,
+      "mean_ocr_confidence": 0.9575
+    },
+    {
+      "fixture": "ocr.png",
+      "page": 1,
+      "source_sha256": "252a42c5d1660c6810ed570d90ebcdc10365001d8f5bc7dfbc1a77fb5722afbd",
+      "reference_text": "INVOICE 2026\nSupplier Example Company\nTotal 1250 USD",
+      "recognized_text": "INVOICE 2026\nSupplier Example Company\nTotal 1250 USD",
+      "word_errors": 0,
+      "reference_words": 8,
+      "character_errors": 0,
+      "reference_characters": 52,
+      "mean_ocr_confidence": 0.95875
+    },
+    {
+      "fixture": "ocr.tif",
+      "page": 1,
+      "source_sha256": "705d983a0a6b2b7f09526fdd50abb08254be88bffc04e51e77ff036b93026178",
+      "reference_text": "INVOICE 2026\nSupplier Example Company\nTotal 1250 USD",
+      "recognized_text": "INVOICE 2026\nSupplier Example Company\nTotal 1250 USD",
+      "word_errors": 0,
+      "reference_words": 8,
+      "character_errors": 0,
+      "reference_characters": 52,
+      "mean_ocr_confidence": 0.95875
+    },
+    {
+      "fixture": "ocr.tif",
+      "page": 2,
+      "source_sha256": "705d983a0a6b2b7f09526fdd50abb08254be88bffc04e51e77ff036b93026178",
+      "reference_text": "INVOICE 2026\nSupplier Example Company\nTotal 1250 USD",
+      "recognized_text": "INVOICE 2026\nSupplier Example Company\nTotal 1250 USD",
+      "word_errors": 0,
+      "reference_words": 8,
+      "character_errors": 0,
+      "reference_characters": 52,
+      "mean_ocr_confidence": 0.95875
+    },
+    {
+      "fixture": "ocr.tiff",
+      "page": 1,
+      "source_sha256": "705d983a0a6b2b7f09526fdd50abb08254be88bffc04e51e77ff036b93026178",
+      "reference_text": "INVOICE 2026\nSupplier Example Company\nTotal 1250 USD",
+      "recognized_text": "INVOICE 2026\nSupplier Example Company\nTotal 1250 USD",
+      "word_errors": 0,
+      "reference_words": 8,
+      "character_errors": 0,
+      "reference_characters": 52,
+      "mean_ocr_confidence": 0.95875
+    },
+    {
+      "fixture": "ocr.tiff",
+      "page": 2,
+      "source_sha256": "705d983a0a6b2b7f09526fdd50abb08254be88bffc04e51e77ff036b93026178",
+      "reference_text": "INVOICE 2026\nSupplier Example Company\nTotal 1250 USD",
+      "recognized_text": "INVOICE 2026\nSupplier Example Company\nTotal 1250 USD",
+      "word_errors": 0,
+      "reference_words": 8,
+      "character_errors": 0,
+      "reference_characters": 52,
+      "mean_ocr_confidence": 0.95875
+    },
+    {
+      "fixture": "process.pdf",
+      "page": 2,
+      "source_sha256": "c01315c4e1885f15c51966ae48fe93929f19c2427bc0b25b2dc5f482fdb1f029",
+      "reference_text": "INVOICE 2026\nSupplier Example Company\nTotal 1250 USD",
+      "recognized_text": "INVOICE 2026\nSupplier Example Company\nTotal 1250 USD",
+      "word_errors": 0,
+      "reference_words": 8,
+      "character_errors": 0,
+      "reference_characters": 52,
+      "mean_ocr_confidence": 0.9562499999999999
+    }
+  ]
+}

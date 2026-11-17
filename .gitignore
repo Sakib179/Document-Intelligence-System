@@ -1,0 +1,23 @@
+node_modules/
+dist/
+.next/
+out/
+coverage/
+*.tsbuildinfo
+next-env.d.ts
+.env
+.env.*
+!.env.example
+.npm-cache/
+.cache/
+.pytest_cache/
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.DS_Store
+*.log
+.runtime/
+test-results/
+playwright-report/
+AI Engineer Task 1.3.pdf

@@ -1,0 +1,644 @@
+{
+  "evaluation": "segmentation-synthetic-v1",
+  "algorithm_version": "segmentation-v1",
+  "measured_at": "2026-11-15T11:43:26.143Z",
+  "scope": "Twelve hand-authored normalized fixtures, covering required scenarios and conservative boundary cases. These templates are also regression fixtures; this is not a held-out or real-document benchmark.",
+  "confidence_note": "Segmentation confidence values are deterministic rule scores, not calibrated probabilities.",
+  "grouping_definition": "Exact page groups plus exact cell ranges for annotated worksheet cases; PDF boundary scores exclude worksheets.",
+  "sample_count": 12,
+  "classification_accuracy": 1,
+  "exact_grouping_accuracy": 1,
+  "review_decision_accuracy": 1,
+  "pdf_boundary_precision": 1,
+  "pdf_boundary_recall": 1,
+  "false_merge_page_pairs": 0,
+  "uncovered_pdf_pages": 0,
+  "ai_evaluated": false,
+  "ai_note": "No cloud calls or fabricated model scores. AI governance is verified with controlled providers in tests.",
+  "cases": [
+    {
+      "name": "single_invoice",
+      "expected_type": "invoice",
+      "actual_type": "invoice",
+      "expected_groups": [
+        [
+          1
+        ]
+      ],
+      "actual_groups": [
+        [
+          1
+        ]
+      ],
+      "expected_ranges": null,
+      "actual_ranges": [
+        [
+          null
+        ]
+      ],
+      "classification_correct": true,
+      "grouping_correct": true,
+      "expected_manual_review": false,
+      "actual_manual_review": false,
+      "review_correct": true,
+      "candidates": [
+        {
+          "type": "invoice",
+          "pages": [
+            1
+          ],
+          "worksheets": [],
+          "ranges": [
+            null
+          ],
+          "confidence": 0.96,
+          "review_reasons": []
+        }
+      ]
+    },
+    {
+      "name": "multi_page_invoice",
+      "expected_type": "invoice",
+      "actual_type": "invoice",
+      "expected_groups": [
+        [
+          1,
+          2
+        ]
+      ],
+      "actual_groups": [
+        [
+          1,
+          2
+        ]
+      ],
+      "expected_ranges": null,
+      "actual_ranges": [
+        [
+          null,
+          null
+        ]
+      ],
+      "classification_correct": true,
+      "grouping_correct": true,
+      "expected_manual_review": false,
+      "actual_manual_review": false,
+      "review_correct": true,
+      "candidates": [
+        {
+          "type": "invoice",
+          "pages": [
+            1,
+            2
+          ],
+          "worksheets": [],
+          "ranges": [
+            null,
+            null
+          ],
+          "confidence": 0.96,
+          "review_reasons": []
+        }
+      ]
+    },
+    {
+      "name": "two_invoices",
+      "expected_type": "invoice",
+      "actual_type": "invoice",
+      "expected_groups": [
+        [
+          1
+        ],
+        [
+          2
+        ]
+      ],
+      "actual_groups": [
+        [
+          1
+        ],
+        [
+          2
+        ]
+      ],
+      "expected_ranges": null,
+      "actual_ranges": [
+        [
+          null
+        ],
+        [
+          null
+        ]
+      ],
+      "classification_correct": true,
+      "grouping_correct": true,
+      "expected_manual_review": false,
+      "actual_manual_review": false,
+      "review_correct": true,
+      "candidates": [
+        {
+          "type": "invoice",
+          "pages": [
+            1
+          ],
+          "worksheets": [],
+          "ranges": [
+            null
+          ],
+          "confidence": 0.96,
+          "review_reasons": []
+        },
+        {
+          "type": "invoice",
+          "pages": [
+            2
+          ],
+          "worksheets": [],
+          "ranges": [
+            null
+          ],
+          "confidence": 0.96,
+          "review_reasons": []
+        }
+      ]
+    },
+    {
+      "name": "continued_table",
+      "expected_type": "invoice",
+      "actual_type": "invoice",
+      "expected_groups": [
+        [
+          1,
+          2
+        ]
+      ],
+      "actual_groups": [
+        [
+          1,
+          2
+        ]
+      ],
+      "expected_ranges": null,
+      "actual_ranges": [
+        [
+          null,
+          null
+        ]
+      ],
+      "classification_correct": true,
+      "grouping_correct": true,
+      "expected_manual_review": true,
+      "actual_manual_review": true,
+      "review_correct": true,
+      "candidates": [
+        {
+          "type": "invoice",
+          "pages": [
+            1,
+            2
+          ],
+          "worksheets": [],
+          "ranges": [
+            null,
+            null
+          ],
+          "confidence": 0.8,
+          "review_reasons": [
+            "CONTINUATION_IDENTITY_INCOMPLETE"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "receipt",
+      "expected_type": "receipt",
+      "actual_type": "receipt",
+      "expected_groups": [
+        [
+          1
+        ]
+      ],
+      "actual_groups": [
+        [
+          1
+        ]
+      ],
+      "expected_ranges": null,
+      "actual_ranges": [
+        [
+          null
+        ]
+      ],
+      "classification_correct": true,
+      "grouping_correct": true,
+      "expected_manual_review": false,
+      "actual_manual_review": false,
+      "review_correct": true,
+      "candidates": [
+        {
+          "type": "receipt",
+          "pages": [
+            1
+          ],
+          "worksheets": [],
+          "ranges": [
+            null
+          ],
+          "confidence": 0.94,
+          "review_reasons": []
+        }
+      ]
+    },
+    {
+      "name": "business_document",
+      "expected_type": "other_business",
+      "actual_type": "other_business",
+      "expected_groups": [
+        [
+          1
+        ]
+      ],
+      "actual_groups": [
+        [
+          1
+        ]
+      ],
+      "expected_ranges": null,
+      "actual_ranges": [
+        [
+          null
+        ]
+      ],
+      "classification_correct": true,
+      "grouping_correct": true,
+      "expected_manual_review": false,
+      "actual_manual_review": false,
+      "review_correct": true,
+      "candidates": [
+        {
+          "type": "other_business",
+          "pages": [
+            1
+          ],
+          "worksheets": [],
+          "ranges": [
+            null
+          ],
+          "confidence": 0.94,
+          "review_reasons": []
+        }
+      ]
+    },
+    {
+      "name": "ambiguous_boundary",
+      "expected_type": "unknown",
+      "actual_type": "unknown",
+      "expected_groups": [
+        [
+          1
+        ],
+        [
+          2
+        ]
+      ],
+      "actual_groups": [
+        [
+          1
+        ],
+        [
+          2
+        ]
+      ],
+      "expected_ranges": null,
+      "actual_ranges": [
+        [
+          null
+        ],
+        [
+          null
+        ]
+      ],
+      "classification_correct": true,
+      "grouping_correct": true,
+      "expected_manual_review": true,
+      "actual_manual_review": true,
+      "review_correct": true,
+      "candidates": [
+        {
+          "type": "invoice",
+          "pages": [
+            1
+          ],
+          "worksheets": [],
+          "ranges": [
+            null
+          ],
+          "confidence": 0.96,
+          "review_reasons": [
+            "AMBIGUOUS_BOUNDARY"
+          ]
+        },
+        {
+          "type": "unknown",
+          "pages": [
+            2
+          ],
+          "worksheets": [],
+          "ranges": [
+            null
+          ],
+          "confidence": 0.25,
+          "review_reasons": [
+            "UNKNOWN_DOCUMENT_TYPE",
+            "AMBIGUOUS_BOUNDARY"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "unknown_page",
+      "expected_type": "unknown",
+      "actual_type": "unknown",
+      "expected_groups": [
+        [
+          1
+        ]
+      ],
+      "actual_groups": [
+        [
+          1
+        ]
+      ],
+      "expected_ranges": null,
+      "actual_ranges": [
+        [
+          null
+        ]
+      ],
+      "classification_correct": true,
+      "grouping_correct": true,
+      "expected_manual_review": true,
+      "actual_manual_review": true,
+      "review_correct": true,
+      "candidates": [
+        {
+          "type": "unknown",
+          "pages": [
+            1
+          ],
+          "worksheets": [],
+          "ranges": [
+            null
+          ],
+          "confidence": 0.25,
+          "review_reasons": [
+            "UNKNOWN_DOCUMENT_TYPE"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "same_number_different_supplier",
+      "expected_type": "invoice",
+      "actual_type": "invoice",
+      "expected_groups": [
+        [
+          1
+        ],
+        [
+          2
+        ]
+      ],
+      "actual_groups": [
+        [
+          1
+        ],
+        [
+          2
+        ]
+      ],
+      "expected_ranges": null,
+      "actual_ranges": [
+        [
+          null
+        ],
+        [
+          null
+        ]
+      ],
+      "classification_correct": true,
+      "grouping_correct": true,
+      "expected_manual_review": false,
+      "actual_manual_review": false,
+      "review_correct": true,
+      "candidates": [
+        {
+          "type": "invoice",
+          "pages": [
+            1
+          ],
+          "worksheets": [],
+          "ranges": [
+            null
+          ],
+          "confidence": 0.96,
+          "review_reasons": []
+        },
+        {
+          "type": "invoice",
+          "pages": [
+            2
+          ],
+          "worksheets": [],
+          "ranges": [
+            null
+          ],
+          "confidence": 0.96,
+          "review_reasons": []
+        }
+      ]
+    },
+    {
+      "name": "page_reset",
+      "expected_type": "invoice",
+      "actual_type": "invoice",
+      "expected_groups": [
+        [
+          1
+        ],
+        [
+          2
+        ]
+      ],
+      "actual_groups": [
+        [
+          1
+        ],
+        [
+          2
+        ]
+      ],
+      "expected_ranges": null,
+      "actual_ranges": [
+        [
+          null
+        ],
+        [
+          null
+        ]
+      ],
+      "classification_correct": true,
+      "grouping_correct": true,
+      "expected_manual_review": false,
+      "actual_manual_review": false,
+      "review_correct": true,
+      "candidates": [
+        {
+          "type": "invoice",
+          "pages": [
+            1
+          ],
+          "worksheets": [],
+          "ranges": [
+            null
+          ],
+          "confidence": 0.96,
+          "review_reasons": []
+        },
+        {
+          "type": "invoice",
+          "pages": [
+            2
+          ],
+          "worksheets": [],
+          "ranges": [
+            null
+          ],
+          "confidence": 0.96,
+          "review_reasons": []
+        }
+      ]
+    },
+    {
+      "name": "excel_invoice_records",
+      "expected_type": "invoice",
+      "actual_type": "invoice",
+      "expected_groups": [
+        [
+          1
+        ],
+        [
+          1
+        ]
+      ],
+      "actual_groups": [
+        [
+          1
+        ],
+        [
+          1
+        ]
+      ],
+      "expected_ranges": [
+        [
+          "A1:C2"
+        ],
+        [
+          "A3:C3"
+        ]
+      ],
+      "actual_ranges": [
+        [
+          "A1:C2"
+        ],
+        [
+          "A3:C3"
+        ]
+      ],
+      "classification_correct": true,
+      "grouping_correct": true,
+      "expected_manual_review": false,
+      "actual_manual_review": false,
+      "review_correct": true,
+      "candidates": [
+        {
+          "type": "invoice",
+          "pages": [
+            1
+          ],
+          "worksheets": [
+            "Invoices"
+          ],
+          "ranges": [
+            "A1:C2"
+          ],
+          "confidence": 0.91,
+          "review_reasons": []
+        },
+        {
+          "type": "invoice",
+          "pages": [
+            1
+          ],
+          "worksheets": [
+            "Invoices"
+          ],
+          "ranges": [
+            "A3:C3"
+          ],
+          "confidence": 0.91,
+          "review_reasons": []
+        }
+      ]
+    },
+    {
+      "name": "excel_missing_identity",
+      "expected_type": "unknown",
+      "actual_type": "unknown",
+      "expected_groups": [
+        [
+          1
+        ]
+      ],
+      "actual_groups": [
+        [
+          1
+        ]
+      ],
+      "expected_ranges": [
+        [
+          "A1:C2"
+        ]
+      ],
+      "actual_ranges": [
+        [
+          "A1:C2"
+        ]
+      ],
+      "classification_correct": true,
+      "grouping_correct": true,
+      "expected_manual_review": true,
+      "actual_manual_review": true,
+      "review_correct": true,
+      "candidates": [
+        {
+          "type": "unknown",
+          "pages": [
+            1
+          ],
+          "worksheets": [
+            "Invoices"
+          ],
+          "ranges": [
+            "A1:C2"
+          ],
+          "confidence": 0.4,
+          "review_reasons": [
+            "MISSING_RECORD_IDENTIFIER",
+            "UNKNOWN_DOCUMENT_TYPE"
+          ]
+        }
+      ]
+    }
+  ]
+}

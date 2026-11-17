@@ -1,0 +1,20 @@
+{
+  "name": "@doc/worker",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/main.ts",
+    "build": "tsc -b",
+    "start": "node dist/main.js"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "3.1169.0",
+    "@doc/contracts": "0.1.0",
+    "@doc/core": "0.1.0",
+    "@doc/database": "0.1.0",
+    "@google/genai": "3.3.0",
+    "bullmq": "5.81.5",
+    "decimal.js": "10.6.0"
+  }
+}

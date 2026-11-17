@@ -1,0 +1,15 @@
+# Already installed in Python Work (.venv); install only through UV --python when needed.
+fastapi==0.162.0
+uvicorn==0.54.0
+pydantic==2.14.3
+python-multipart==0.0.33
+Pillow==12.3.0
+PyMuPDF==1.28.2
+xlrd==2.0.2
+defusedxml==0.7.1
+pytesseract==0.3.13
+opencv-python-headless==5.0.0.93
+openpyxl==3.1.5
+boto3==1.44.3
+charset-normalizer==3.5.2
+numpy==2.5.3

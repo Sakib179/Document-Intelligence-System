@@ -1,0 +1,5 @@
+# Test configuration only. Use the existing interpreter; never uv run or uv sync here.
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+addopts = "-ra"
