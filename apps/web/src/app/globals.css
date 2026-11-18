@@ -1672,10 +1672,12 @@ tbody tr:last-child td {
   font-size: 15px;
 }
 
+.empty .empty-body,
 .empty p {
   margin: 0 auto;
-  max-width: 420px;
+  max-width: 440px;
   font-size: 13px;
+  line-height: 1.6;
   color: var(--muted);
 }
 
@@ -1981,6 +1983,41 @@ tbody tr:last-child td {
   gap: 12px;
   margin-top: 16px;
   flex-wrap: wrap;
+}
+
+.upload-cloud-toggle {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-top: 14px;
+  padding: 11px 14px;
+  border-radius: 9px;
+  border: 1px solid #cce0d5;
+  background: linear-gradient(135deg, #f2faf6 0%, #f9fdfb 100%);
+  cursor: pointer;
+}
+
+.upload-cloud-toggle input {
+  width: 16px;
+  height: 16px;
+  margin: 2px 0 0;
+  accent-color: var(--brand);
+  flex-shrink: 0;
+}
+
+.upload-cloud-toggle strong {
+  display: block;
+  font-size: 13px;
+  font-weight: 650;
+  color: var(--ink);
+}
+
+.upload-cloud-toggle small {
+  display: block;
+  margin-top: 2px;
+  font-size: 11.5px;
+  font-weight: 400;
+  color: var(--muted);
 }
 
 .upload-summary {
@@ -4790,6 +4827,233 @@ tbody tr:last-child td {
   background: rgba(17, 36, 31, 0.05);
   padding: 1px 6px;
   border-radius: 4px;
+}
+
+/* Grouped Actionable Findings Checklist */
+.finding-groups {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.finding-group {
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: var(--card);
+  overflow: hidden;
+  border-left: 3.5px solid var(--line-strong);
+}
+
+.finding-group.tone-danger {
+  border-left-color: var(--danger);
+  background: #fffbfa;
+}
+
+.finding-group.tone-warn {
+  border-left-color: var(--warn);
+  background: #fffdf8;
+}
+
+.finding-group.tone-info {
+  border-left-color: var(--info);
+  background: #f8fbff;
+}
+
+.finding-group-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 11px 14px;
+  border-bottom: 1px solid rgba(17, 36, 31, 0.07);
+}
+
+.finding-group-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.finding-group-title strong {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.finding-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.finding-dot.danger { background: var(--danger); }
+.finding-dot.warn { background: var(--warn); }
+.finding-dot.info { background: var(--info); }
+
+.finding-count {
+  padding: 1px 7px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  background: rgba(17, 36, 31, 0.07);
+  color: var(--ink-secondary);
+}
+
+.finding-group-desc {
+  margin: 0;
+  padding: 9px 14px 4px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.missing-field-pills {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex-wrap: wrap;
+  padding: 8px 14px 13px;
+}
+
+.missing-field-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border-radius: 7px;
+  background: var(--danger-bg);
+  border: 1px solid var(--danger-border);
+  color: var(--danger);
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.missing-field-pill::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--danger);
+}
+
+.finding-rows {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.finding-row {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 10px 14px;
+  border-bottom: 1px solid rgba(17, 36, 31, 0.06);
+}
+
+.finding-row:last-child {
+  border-bottom: 0;
+}
+
+.finding-row-main {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.finding-subject {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.finding-summary {
+  font-size: 12px;
+  color: var(--ink-secondary);
+}
+
+.finding-inline-val {
+  padding: 1px 6px;
+  border-radius: 5px;
+  background: var(--surface-subtle);
+  border: 1px solid var(--line);
+  font-size: 11px;
+  color: var(--ink);
+}
+
+.finding-equation {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.finding-equation strong {
+  color: var(--ink);
+  font-weight: 700;
+}
+
+.eq-sep {
+  font-size: 11px;
+  color: var(--subtle);
+}
+
+.diff-badge {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--danger-bg);
+  border: 1px solid var(--danger-border);
+  color: var(--danger);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.terms-checklist {
+  list-style: none;
+  margin: 0;
+  padding: 10px 14px 12px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px 14px;
+}
+
+.terms-checklist li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--ink-secondary);
+}
+
+.check-circle {
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  border: 1.5px solid #8fb3d9;
+  background: #ffffff;
+  flex-shrink: 0;
+}
+
+.raw-findings-details {
+  margin-top: 10px;
+}
+
+.raw-findings-details summary {
+  font-size: 11.5px;
+  color: var(--muted);
+}
+
+.raw-findings-details summary:hover {
+  color: var(--brand);
+}
+
+@media (max-width: 640px) {
+  .terms-checklist {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 @media (max-width: 1100px) {

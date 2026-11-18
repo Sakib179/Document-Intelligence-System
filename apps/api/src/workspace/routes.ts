@@ -16,7 +16,7 @@ function context(request: FastifyRequest) {
 }
 export function registerWorkspaceRoutes(app: FastifyInstance, pool: pg.Pool, storage: S3Client, env: RuntimeEnvironment, resolveWorkspace: (request: FastifyRequest) => Promise<void>) {
   const service = new WorkspaceService(pool);
-  app.get('/v1/me', { onRequest: resolveWorkspace }, async (request) => { empty.parse(request.query); return workspaceUserSchema.parse({ ...await service.me(context(request)), upload_limits: { max_files: env.UPLOAD_MAX_FILES, max_file_bytes: env.UPLOAD_MAX_FILE_BYTES, max_batch_bytes: env.UPLOAD_MAX_BATCH_BYTES } }); });
+  app.get('/v1/me', { onRequest: resolveWorkspace }, async (request) => { empty.parse(request.query); return workspaceUserSchema.parse({ ...await service.me(context(request)), cloud_llm_enabled: env.CLOUD_LLM_ENABLED, upload_limits: { max_files: env.UPLOAD_MAX_FILES, max_file_bytes: env.UPLOAD_MAX_FILE_BYTES, max_batch_bytes: env.UPLOAD_MAX_BATCH_BYTES } }); });
   app.get('/v1/dashboard', { onRequest: resolveWorkspace }, async request => { empty.parse(request.query);return dashboardSchema.parse(await service.dashboard(context(request))); });
   app.get('/v1/workspace/documents', { onRequest: resolveWorkspace },async request => workspaceDocumentsSchema.parse(await service.documents(context(request), workspaceListQuery.parse(request.query))));
   app.get('/v1/workspace/reconciliations', { onRequest: resolveWorkspace },async request => { const query = pageQuerySchema.parse(request.query); return reconciliationHistorySchema.parse(await service.reconciliations(context(request), query.limit, query.cursor)); });

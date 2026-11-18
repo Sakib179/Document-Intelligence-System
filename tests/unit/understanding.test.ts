@@ -20,6 +20,16 @@ describe('document classification and conservative invoice grouping', () => {
     expect(understand([page(1, second)]).documentType).toBe('unknown');
     expect(understand([page(1, first), page(2, second.replace('1048', '9999'))]).candidates).toHaveLength(2);
   });
+  it('groups a 3-page invoice whose totals appear on an INVOICE CONTINUED page and notes on page 3', () => {
+    const p1 = 'Delta Industrial Components (Demo) Ltd.\nWarehouse 7, Chattogram, BangladeshINVOICE\nInvoice No.: INV-2026-1072  Invoice Date: 31 Oct 2026  Due Date: 30 Nov 2026\nCurrency: BDT\nBILL TO    SUPPLIER\nItem Code Description Qty Unit Price (BDT) Line Total (BDT)\nIC-001 Bolts 500 28.00 14,000.00\nSYNTHETIC TEST DATA - NOT A REAL INVOICE                    Page 1';
+    const p2 = 'INVOICE CONTINUED\nInvoice INV-2026-1072 - continued line-item and financial details.\nSubtotal 344,100.00\nVAT (15.00%) 51,615.00\nTOTAL AMOUNT DUE 398,215.00\nSYNTHETIC TEST DATA - NOT A REAL INVOICE                    Page 2';
+    const p3 = 'DELIVERY, SERVICE AND PAYMENT NOTES\nPayment Reference    INV-2026-1072\nSYNTHETIC TEST DATA - NOT A REAL INVOICE                    Page 3';
+    const result = understand([page(1, p1), page(2, p2), page(3, p3)]);
+    expect(result.documentType).toBe('invoice');
+    expect(result.candidates).toHaveLength(1);
+    expect(result.candidates[0]?.source_pages).toEqual([1, 2, 3]);
+    expect(result.candidates[0]?.review_reasons).not.toContain('AMBIGUOUS_BOUNDARY');
+  });
   it('does not treat invoice correspondence without financial table signals as an invoice', () => {
     expect(understand([page(1, 'Letter\nInvoice No.: INV-42\nInvoice Date: 28 Oct 2026\nPlease confirm this reference.')]).documentType).toBe('unknown');
   });

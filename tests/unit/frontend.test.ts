@@ -63,8 +63,9 @@ describe('frontend security and input contracts', () => {
     expect(formatQuantity('2.00000000')).toBe('2');
     expect(formatQuantity('2.50000000')).toBe('2.5');
     expect(formatQuantity('2.34600000')).toBe('2.35');
-    expect(formatTaxRate('0.150000')).toBe('15%');
-    expect(formatTaxRate('0.075000')).toBe('7.5%');
+    expect(formatTaxRate('0.150000')).toBe('15.00%');
+    expect(formatTaxRate('0.075000')).toBe('7.50%');
+    expect(formatTaxRate('0.050000')).toBe('5.00%');
     expect(formatFieldPath('line_items.1.unit_price')).toBe('Line 1 · Unit price');
     expect(formatFieldPath('terms.tax_mode')).toBe('Tax method');
     expect(parseAuditDiff('{"total":"115.00000000","supplier_name":"Acme"}', '{"total":"120.00000000","supplier_name":"Acme"}')).toEqual([
@@ -122,7 +123,7 @@ describe('frontend security and input contracts', () => {
     });
     expect(invAnalytics.filledCoreFields).toBe(8);
     expect(invAnalytics.completenessPct).toBe(100);
-    expect(invAnalytics.composition?.effectiveTaxPct).toBe('15.0%');
+    expect(invAnalytics.composition?.effectiveTaxPct).toBe('15.00%');
     expect(invAnalytics.largestLineId).toBe('22222222-2222-4222-8222-222222222221');
     expect(invAnalytics.lineShares['22222222-2222-4222-8222-222222222221']).toBe(75);
   });

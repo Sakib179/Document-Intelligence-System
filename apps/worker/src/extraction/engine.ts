@@ -14,6 +14,32 @@ export type ExtractionHooks = {
   wait?: (ms: number) => Promise<void>;
 };
 
+const DECIMAL_HEADER_FIELDS = ['subtotal', 'tax', 'total'] as const;
+const DECIMAL_LINE_FIELDS = ['quantity', 'unit_price', 'tax_rate', 'line_total'] as const;
+const UNAMBIGUOUS_GROUPED_DECIMAL = /^-?\d{1,3}(?:,\d{3})+\.\d{1,8}$/;
+
+/** Normalize unambiguous thousands-grouped decimal strings (e.g. "344,100.00" -> "344100.00")
+ *  in model value slots before strict Zod schema checks. Never touches raw_value, numbers, or ambiguous commas. */
+function normalizeGroupedDecimalValues(input: unknown): unknown {
+  if (!input || typeof input !== 'object' || Array.isArray(input)) return input;
+  const record = structuredClone(input) as Record<string, unknown>;
+  const cleanField = (field: unknown) => {
+    if (!field || typeof field !== 'object' || Array.isArray(field)) return;
+    const obj = field as Record<string, unknown>;
+    if (typeof obj.value === 'string' && UNAMBIGUOUS_GROUPED_DECIMAL.test(obj.value.trim())) {
+      obj.value = obj.value.trim().replaceAll(',', '');
+    }
+  };
+  for (const key of DECIMAL_HEADER_FIELDS) cleanField(record[key]);
+  if (Array.isArray(record.line_items)) {
+    for (const line of record.line_items) {
+      if (!line || typeof line !== 'object' || Array.isArray(line)) continue;
+      for (const key of DECIMAL_LINE_FIELDS) cleanField((line as Record<string, unknown>)[key]);
+    }
+  }
+  return record;
+}
+
 export async function extractInvoice(context: ExtractionContext, environment: RuntimeEnvironment,
   providers: { gemini: InvoiceProvider | null; local: InvoiceProvider | null }, hooks: ExtractionHooks): Promise<ExtractionOutcome> {
   const start = performance.now(), attempts: AttemptEvent[] = [];
@@ -46,7 +72,7 @@ export async function extractInvoice(context: ExtractionContext, environment: Ru
         if (Buffer.byteLength(output.text) > 2_097_152) throw new ProviderFailure('PROVIDER_RESPONSE_TOO_LARGE');
         let json: unknown;
         try { json = JSON.parse(output.text); } catch { schemaValid = false; throw new ProviderFailure('PROVIDER_INVALID_JSON'); }
-        const parsed = invoiceExtractionSchema.safeParse(json);
+        const parsed = invoiceExtractionSchema.safeParse(normalizeGroupedDecimalValues(json));
         schemaValid = parsed.success;
         if (!parsed.success) throw new ProviderFailure('PROVIDER_SCHEMA_INVALID');
         const result = groundInvoice(parsed.data, context);

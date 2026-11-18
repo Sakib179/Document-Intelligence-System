@@ -122,7 +122,7 @@ export class ExtractionRepository {
         [id, event.status, event.schemaValid, event.errorCode, event.durationMs, event.modelVersion?.slice(0, 128) ?? null, JSON.stringify(event.usage)]);
       if (!updated.rowCount) throw new Error('Attempt completion is unavailable');
       if (event.status === 'succeeded') await client.query("UPDATE public.llm_provider_health SET consecutive_failures=0,success_count=success_count+1,last_success_at=clock_timestamp(),last_error_code=NULL,circuit_open_until=NULL WHERE provider=$1 AND model_id=$2 AND endpoint_fingerprint=$3", [provider.name, provider.model, provider.endpointFingerprint]);
-      else await client.query("UPDATE public.llm_provider_health SET consecutive_failures=consecutive_failures+1,failure_count=failure_count+1,last_failure_at=clock_timestamp(),last_error_code=$4,circuit_open_until=CASE WHEN consecutive_failures+1>=$5 THEN clock_timestamp()+make_interval(secs=>$6) ELSE NULL END WHERE provider=$1 AND model_id=$2 AND endpoint_fingerprint=$3",
+      else await client.query("UPDATE public.llm_provider_health SET consecutive_failures=CASE WHEN circuit_open_until IS NOT NULL AND circuit_open_until<=clock_timestamp() THEN 1 ELSE consecutive_failures+1 END,failure_count=failure_count+1,last_failure_at=clock_timestamp(),last_error_code=$4,circuit_open_until=CASE WHEN (CASE WHEN circuit_open_until IS NOT NULL AND circuit_open_until<=clock_timestamp() THEN 1 ELSE consecutive_failures+1 END)>=$5 THEN clock_timestamp()+make_interval(secs=>$6) ELSE NULL END WHERE provider=$1 AND model_id=$2 AND endpoint_fingerprint=$3",
         [provider.name, provider.model, provider.endpointFingerprint, event.errorCode, this.environment.LLM_CIRCUIT_FAILURES, this.environment.LLM_CIRCUIT_SECONDS]);
     });
   }

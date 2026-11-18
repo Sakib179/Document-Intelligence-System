@@ -98,7 +98,7 @@ export function formatQuantity(raw: string | null | undefined): string | null {
   return formatDecimal(raw, 0, 2);
 }
 
-/** Converts a normalized fraction string (e.g. "0.150000") to a percentage string ("15%") using string shifting only. */
+/** Converts a normalized fraction string (e.g. "0.150000") to a 2-decimal percentage string ("15.00%") using string shifting only. */
 export function formatTaxRate(raw: string | null | undefined): string | null {
   if (raw === null || raw === undefined || !raw.trim()) return null;
   const parsed = parsePlainDecimal(raw);
@@ -107,8 +107,9 @@ export function formatTaxRate(raw: string | null | undefined): string | null {
   const shiftedInt = (parsed.intPart + fracPadded.slice(0, 2)).replace(/^0+(?=\d)/, '');
   const shiftedFrac = fracPadded.slice(2);
   const rounded = roundPlainDecimal({ sign: parsed.sign, intPart: shiftedInt, fracPart: shiftedFrac }, 2);
-  const sign = rounded.intPart === '0' && !rounded.fracPart ? '' : rounded.sign;
-  return `${sign}${addGrouping(rounded.intPart)}${rounded.fracPart ? '.' + rounded.fracPart : ''}%`;
+  const frac = rounded.fracPart.padEnd(2, '0');
+  const sign = rounded.intPart === '0' && /^0*$/.test(frac) ? '' : rounded.sign;
+  return `${sign}${addGrouping(rounded.intPart)}.${frac}%`;
 }
 
 const FIELD_LABELS: Record<string, string> = {

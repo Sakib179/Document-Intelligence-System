@@ -155,7 +155,7 @@ export function Empty({ title, children }: {
         <Icon name="document" size={26} />
       </div>
       <h3>{title}</h3>
-      <p>{children}</p>
+      {children !== undefined && children !== null && <div className="empty-body">{children}</div>}
     </div>
   );
 }

@@ -5,13 +5,11 @@ import type { FinancialCheck, FinancialInvoice } from '@doc/contracts';
 import { api, useResource, date, label } from '../lib/client';
 import { formatAmount, formatInputNumber, formatQuantity, formatTaxRate, formatFieldPath, parseAuditDiff } from '../lib/format';
 import {
-  CATEGORY_META,
   computeInvoiceVisualAnalytics,
   computeValidationAnalytics,
   describeCheck,
   describeValidationIssue,
 } from '../lib/validation-copy';
-import type { IssueCategory } from '../lib/validation-copy';
 import type { AuditPage, ValidationHistory } from '../lib/types';
 import { Badge, Empty, Icon, Loading, Notice, Pager } from './ui';
 import { useUser } from './shell';
@@ -95,8 +93,8 @@ export function InvoiceValues({ invoice, activeEvidenceKey, onEvidence }: {
               <strong className="tabular">{invoice.line_items.length}</strong> line item{invoice.line_items.length === 1 ? '' : 's'}
             </span>
             {visual.composition?.effectiveTaxPct && (
-              <span className="analytics-chip">
-                Tax ratio <strong className="tabular">{visual.composition.effectiveTaxPct}</strong>
+              <span className="analytics-chip" title="Calculated as Tax divided by Subtotal (pre-discount if a discount applies)">
+                Tax / Subtotal <strong className="tabular">{visual.composition.effectiveTaxPct}</strong>
               </span>
             )}
           </div>
@@ -107,8 +105,8 @@ export function InvoiceValues({ invoice, activeEvidenceKey, onEvidence }: {
                 <span className="comp-tax" style={{ width: visual.composition.taxPct + '%' }} />
               </div>
               <div className="composition-legend tabular">
-                <span><i className="legend-swatch sub" />Subtotal {visual.composition.subtotalPct}%</span>
-                <span><i className="legend-swatch tax" />Tax {visual.composition.taxPct}%</span>
+                <span><i className="legend-swatch sub" />Subtotal {visual.composition.subtotalPctLabel}</span>
+                <span><i className="legend-swatch tax" />Tax share {visual.composition.taxPctLabel}</span>
               </div>
             </div>
           )}
@@ -242,14 +240,13 @@ function checkStatusLabel(status: FinancialCheck['status']) {
   return 'Needs terms';
 }
 
-export function ValidationPanel({ invoiceId, onTermsUpdated }: {
+export function ValidationPanel({ invoiceId, onTermsUpdated, onOpenReview }: {
   invoiceId: string;
   onTermsUpdated?: () => void;
+  onOpenReview?: () => void;
 }) {
   const user = useUser();
   const resource = useResource<ValidationHistory>('invoices/' + invoiceId + '/validations', 5000);
-  const [issuePage, setIssuePage] = useState(0);
-  const [categoryFilter, setCategoryFilter] = useState<'all' | IssueCategory>('all');
   const [showLineChecks, setShowLineChecks] = useState(false);
   const [showTerms, setShowTerms] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -381,10 +378,29 @@ export function ValidationPanel({ invoiceId, onTermsUpdated }: {
 
   const severityRank = { high: 3, medium: 2, low: 1 };
   const sortedIssues = [...(report?.issues ?? [])].sort((a, b) => severityRank[b.severity] - severityRank[a.severity]);
-  const filteredIssues = categoryFilter === 'all'
-    ? sortedIssues
-    : sortedIssues.filter(item => describeValidationIssue(item).category === categoryFilter);
-  const start = Math.min(issuePage * 6, Math.max(0, Math.floor((filteredIssues.length - 1) / 6) * 6));
+
+  const MISSING_CODES = new Set(['MISSING_MANDATORY_FIELD', 'MISSING_LINE_FIELD', 'CURRENCY_REQUIRED', 'NO_APPLICABLE_LINE_ITEMS']);
+  const mathIssues = sortedIssues.filter(item => describeValidationIssue(item).category === 'math');
+  const missingIssues = sortedIssues.filter(item => MISSING_CODES.has(item.code));
+  const otherDataIssues = sortedIssues.filter(item => describeValidationIssue(item).category === 'data' && !MISSING_CODES.has(item.code));
+  const duplicateIssues = sortedIssues.filter(item => describeValidationIssue(item).category === 'duplicates');
+  const termsIssues = sortedIssues.filter(item => describeValidationIssue(item).category === 'terms');
+
+  const shortTermLabel = (code: string, field: string) => {
+    const map: Record<string, string> = {
+      TAX_METHOD_UNIDENTIFIED: 'Tax method (Exclusive / Inclusive)',
+      SUBTOTAL_BASIS_UNIDENTIFIED: 'Subtotal basis (Net / Gross)',
+      LINE_AMOUNT_BASIS_UNIDENTIFIED: 'Line item basis (Net / Gross)',
+      ADJUSTMENTS_UNCONFIRMED: 'Charges, discounts & withholding',
+      LINE_ITEM_COVERAGE_UNCONFIRMED: 'All line items present',
+      TOTAL_CALCULATION_INCOMPLETE: 'Grand total equation',
+      TAX_BASIS_CONFLICT: 'Fix tax vs. subtotal conflict',
+      TAX_SCOPE_UNCONFIRMED: 'Tax scope for adjustments',
+      LINE_TAX_RATE_REQUIRED: 'Line tax rates for conversion',
+      UNKNOWN_EXCLUDED_LINE: 'Refresh excluded lines',
+    };
+    return map[code] ?? formatFieldPath(field);
+  };
 
   const lineChecks = report?.checks.filter(c => c.code === 'LINE_AMOUNT_MISMATCH') ?? [];
   const headerChecks = report?.checks.filter(c => c.code !== 'LINE_AMOUNT_MISMATCH') ?? [];
@@ -594,24 +610,7 @@ export function ValidationPanel({ invoiceId, onTermsUpdated }: {
             </div>
           </div>
 
-          {/* 3. Guided Terms Setup Callout when Terms Are Blocking Math */}
-          {analytics.needsTermsSetup && writable && !showTerms && (
-            <div className="val-setup-banner">
-              <div className="val-setup-copy">
-                <strong>Unlock full arithmetic verification in one step</strong>
-                <p>
-                  {analytics.skippedChecks > 0
-                    ? `${analytics.skippedChecks} calculation check${analytics.skippedChecks === 1 ? ' is' : 's are'} waiting for tax treatment (Exclusive/Inclusive) and adjustment confirmation.`
-                    : 'Confirm tax treatment and adjustment completeness to resolve setup items.'}
-                </p>
-              </div>
-              <button type="button" className="button small" disabled={busy} onClick={openTermsForm}>
-                <Icon name="sliders" size={14} />Confirm terms &amp; verify math
-              </button>
-            </div>
-          )}
-
-          {/* 4. Always-Visible Verification Checks Scoreboard */}
+          {/* 3. Always-Visible Verification Checks Scoreboard */}
           {report.checks.length > 0 && (
             <div className="val-scoreboard">
               <div className="val-section-label">
@@ -697,89 +696,205 @@ export function ValidationPanel({ invoiceId, onTermsUpdated }: {
             </div>
           )}
 
-          {/* 5. Plain-English Grouped Findings */}
+          {/* 4. Actionable Grouped Findings Checklist */}
           {report.issues.length > 0 ? (
             <div className="val-findings">
-              <div className="val-findings-bar">
-                <span className="val-section-label">Detailed findings</span>
-                <div className="val-filter-chips" role="group" aria-label="Filter findings by category">
-                  <button
-                    type="button"
-                    className={'val-chip ' + (categoryFilter === 'all' ? 'active' : '')}
-                    onClick={() => { setCategoryFilter('all'); setIssuePage(0); }}
-                  >
-                    All <span className="tabular">{report.issues.length}</span>
-                  </button>
-                  {(['math', 'data', 'terms', 'duplicates'] as const).map(cat => (
-                    analytics.categoryCounts[cat] > 0 && (
-                      <button
-                        key={cat}
-                        type="button"
-                        className={'val-chip ' + (categoryFilter === cat ? 'active' : '')}
-                        onClick={() => { setCategoryFilter(cat); setIssuePage(0); }}
-                      >
-                        {CATEGORY_META[cat].label} <span className="tabular">{analytics.categoryCounts[cat]}</span>
-                      </button>
-                    )
-                  ))}
-                </div>
+              <div className="val-section-label">
+                <span>What needs attention</span>
+                <span className="muted small-copy tabular">{report.issues.length} item{report.issues.length === 1 ? '' : 's'}</span>
               </div>
 
-              <ul className="issue-list">
-                {filteredIssues.slice(start, start + 6).map((issue, index) => {
-                  const info = describeValidationIssue(issue);
-                  const diffRaw = typeof issue.evidence?.difference === 'string' ? issue.evidence.difference : null;
-                  const diffFmt = diffRaw ? (formatAmount(diffRaw, currency) ?? diffRaw) : null;
-                  const showCompare = !info.hideValueCompare && (issue.expected !== null || issue.actual !== null);
-                  return (
-                    <li key={issue.code + issue.field + index} className={'issue-card sev-' + issue.severity}>
-                      <span className={'severity ' + issue.severity} />
-                      <div className="issue-body">
-                        <div className="issue-header">
-                          <strong>{info.title}</strong>
-                          <div className="issue-tags">
-                            <span className="issue-field-chip">{formatFieldPath(issue.field)}</span>
-                            <span className={'sev-pill ' + issue.severity}>{issue.severity}</span>
-                          </div>
-                        </div>
-                        <p className="issue-explanation">{info.explanation}</p>
-                        {showCompare && (
-                          <div className="issue-compare-grid tabular">
-                            <div className="compare-box">
-                              <span>Expected</span>
-                              <strong>{formatAmount(issue.expected, currency) ?? issue.expected ?? '—'}</strong>
+              <div className="finding-groups">
+                {/* Group 1: Arithmetic discrepancies */}
+                {mathIssues.length > 0 && (
+                  <div className={'finding-group ' + (mathIssues.some(i => i.severity === 'high') ? 'tone-danger' : 'tone-warn')}>
+                    <div className="finding-group-head">
+                      <div className="finding-group-title">
+                        <span className={'finding-dot ' + (mathIssues.some(i => i.severity === 'high') ? 'danger' : 'warn')} />
+                        <strong>Arithmetic mismatches</strong>
+                        <span className="finding-count tabular">{mathIssues.length}</span>
+                      </div>
+                      {writable && onOpenReview && (
+                        <button type="button" className="text-button small-link" onClick={onOpenReview}>
+                          Fix in review <Icon name="arrow" size={13} />
+                        </button>
+                      )}
+                    </div>
+                    <ul className="finding-rows">
+                      {mathIssues.map((issue, idx) => {
+                        const info = describeValidationIssue(issue);
+                        const diffRaw = typeof issue.evidence?.difference === 'string' ? issue.evidence.difference : null;
+                        const diffFmt = diffRaw ? (formatAmount(diffRaw, currency) ?? diffRaw) : null;
+                        const expFmt = formatAmount(issue.expected, currency) ?? issue.expected;
+                        const actFmt = formatAmount(issue.actual, currency) ?? issue.actual;
+                        return (
+                          <li key={issue.code + issue.field + idx} className="finding-row">
+                            <div className="finding-row-main">
+                              <span className="finding-subject">{formatFieldPath(issue.field)}</span>
+                              <span className="finding-summary">{info.title}</span>
                             </div>
-                            <div className="compare-box">
-                              <span>Reported</span>
-                              <strong>{formatAmount(issue.actual, currency) ?? issue.actual ?? '—'}</strong>
-                            </div>
-                            {diffFmt && (
-                              <div className="compare-box is-diff">
-                                <span>Difference</span>
-                                <strong>{diffFmt}{currency ? ' ' + currency : ''}</strong>
+                            {!info.hideValueCompare && (expFmt || actFmt) && (
+                              <div className="finding-equation tabular">
+                                <span>Expected <strong>{expFmt ?? '—'}</strong></span>
+                                <span className="eq-sep">vs</span>
+                                <span>Found <strong>{actFmt ?? '—'}</strong></span>
+                                {diffFmt && (
+                                  <span className="diff-badge">
+                                    Off by {diffFmt}{currency ? ' ' + currency : ''}
+                                  </span>
+                                )}
                               </div>
                             )}
-                          </div>
-                        )}
-                        <div className="issue-footer-row">
-                          <span className="issue-action-hint">{info.action}</span>
-                          <code className="issue-code-tag">{issue.code}</code>
-                        </div>
-                      </div>
-                    </li>
-                  );
-                })}
-              </ul>
-
-              {filteredIssues.length > 6 && (
-                <div className="issue-pagination">
-                  <span className="tabular">Showing {start + 1}–{Math.min(start + 6, filteredIssues.length)} of {filteredIssues.length} findings</span>
-                  <div>
-                    <button type="button" className="text-button" disabled={start === 0} onClick={() => setIssuePage(Math.max(0, issuePage - 1))}>Previous</button>
-                    <button type="button" className="text-button" disabled={start + 6 >= filteredIssues.length} onClick={() => setIssuePage(issuePage + 1)}>Next</button>
+                          </li>
+                        );
+                      })}
+                    </ul>
                   </div>
+                )}
+
+                {/* Group 2: Missing required fields (collapsed into one clean pill group) */}
+                {missingIssues.length > 0 && (
+                  <div className="finding-group tone-danger">
+                    <div className="finding-group-head">
+                      <div className="finding-group-title">
+                        <span className="finding-dot danger" />
+                        <strong>Missing required information</strong>
+                        <span className="finding-count tabular">{missingIssues.length}</span>
+                      </div>
+                      {writable && onOpenReview && (
+                        <button type="button" className="button secondary small" onClick={onOpenReview}>
+                          Fill in Manual review <Icon name="arrow" size={13} />
+                        </button>
+                      )}
+                    </div>
+                    <p className="finding-group-desc">
+                      These required fields weren’t found on the document. Verify against the original preview and enter them in Manual review.
+                    </p>
+                    <div className="missing-field-pills">
+                      {missingIssues.map((issue, idx) => (
+                        <span key={issue.code + issue.field + idx} className="missing-field-pill">
+                          {issue.code === 'NO_APPLICABLE_LINE_ITEMS' ? 'Line items' : formatFieldPath(issue.field)}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Group 3: Other data quality items */}
+                {otherDataIssues.length > 0 && (
+                  <div className="finding-group tone-warn">
+                    <div className="finding-group-head">
+                      <div className="finding-group-title">
+                        <span className="finding-dot warn" />
+                        <strong>Values to double-check</strong>
+                        <span className="finding-count tabular">{otherDataIssues.length}</span>
+                      </div>
+                      {writable && onOpenReview && (
+                        <button type="button" className="text-button small-link" onClick={onOpenReview}>
+                          Review fields <Icon name="arrow" size={13} />
+                        </button>
+                      )}
+                    </div>
+                    <ul className="finding-rows">
+                      {otherDataIssues.map((issue, idx) => {
+                        const info = describeValidationIssue(issue);
+                        return (
+                          <li key={issue.code + issue.field + idx} className="finding-row">
+                            <div className="finding-row-main">
+                              <span className="finding-subject">{formatFieldPath(issue.field)}</span>
+                              <span className="finding-summary">{info.title}</span>
+                              {!info.hideValueCompare && issue.actual && (
+                                <code className="finding-inline-val">{issue.actual}</code>
+                              )}
+                            </div>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </div>
+                )}
+
+                {/* Group 4: Duplicate alerts */}
+                {duplicateIssues.length > 0 && (
+                  <div className="finding-group tone-warn">
+                    <div className="finding-group-head">
+                      <div className="finding-group-title">
+                        <span className="finding-dot warn" />
+                        <strong>Duplicate check alert</strong>
+                        <span className="finding-count tabular">{duplicateIssues.length}</span>
+                      </div>
+                    </div>
+                    <ul className="finding-rows">
+                      {duplicateIssues.map((issue, idx) => {
+                        const info = describeValidationIssue(issue);
+                        const signals = Array.isArray(issue.evidence?.matched_signals)
+                          ? (issue.evidence.matched_signals as string[]).map(s => formatFieldPath(s)).join(', ')
+                          : null;
+                        return (
+                          <li key={issue.code + idx} className="finding-row">
+                            <div className="finding-row-main">
+                              <span className="finding-subject">{info.title}</span>
+                              <span className="finding-summary">
+                                {signals ? `Matched on ${signals}` : info.explanation}
+                              </span>
+                            </div>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </div>
+                )}
+
+                {/* Group 5: Tax & billing terms checklist (all 6 terms items in ONE crisp checklist!) */}
+                {termsIssues.length > 0 && (
+                  <div className="finding-group tone-info">
+                    <div className="finding-group-head">
+                      <div className="finding-group-title">
+                        <span className="finding-dot info" />
+                        <strong>Billing terms needed to run math checks</strong>
+                        <span className="finding-count tabular">{termsIssues.length}</span>
+                      </div>
+                      {writable && !showTerms && (
+                        <button type="button" className="button small" disabled={busy} onClick={openTermsForm}>
+                          <Icon name="sliders" size={13} />Confirm terms
+                        </button>
+                      )}
+                    </div>
+                    <ul className="terms-checklist">
+                      {termsIssues.map((issue, idx) => (
+                        <li key={issue.code + idx}>
+                          <span className="check-circle" aria-hidden="true" />
+                          <span>{shortTermLabel(issue.code, issue.field)}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+
+              <details className="raw-findings-details">
+                <summary>Technical validation codes ({report.issues.length})</summary>
+                <div className="table-scroll">
+                  <table className="compact-table">
+                    <thead>
+                      <tr>
+                        <th>Code</th>
+                        <th>Field</th>
+                        <th>Severity</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {sortedIssues.map((issue, idx) => (
+                        <tr key={issue.code + issue.field + idx}>
+                          <td><code className="issue-code-tag">{issue.code}</code></td>
+                          <td>{formatFieldPath(issue.field)}</td>
+                          <td><span className={'sev-pill ' + issue.severity}>{issue.severity}</span></td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
-              )}
+              </details>
             </div>
           ) : (
             <Notice tone={resource.data?.stale ? 'info' : 'success'}>

@@ -926,7 +926,11 @@ export function DocumentDetail({ id, reviewInvoice }: {
                   activeEvidenceKey={activeEvidenceKey}
                   onEvidence={showEvidence}
                 />
-                <ValidationPanel invoiceId={invoice.id} onTermsUpdated={result.reload} />
+                <ValidationPanel
+                  invoiceId={invoice.id}
+                  onTermsUpdated={result.reload}
+                  onOpenReview={() => setTab('review')}
+                />
               </>
             )}
           </div>

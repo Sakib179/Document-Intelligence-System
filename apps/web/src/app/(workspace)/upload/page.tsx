@@ -3,7 +3,7 @@ import { useRef, useState } from 'react';
 import Link from 'next/link';
 import { useUser } from '../../../components/shell';
 import { PageTitle, Notice, Icon, Badge, FileTypeBadge, Loading } from '../../../components/ui';
-import { fileSize, useResource } from '../../../lib/client';
+import { api, fileSize, useResource } from '../../../lib/client';
 import type { UploadAccepted } from '@doc/contracts';
 import type { ProgressData } from '../../../lib/types';
 import { validateUploadFiles } from '../../../lib/upload';
@@ -42,6 +42,8 @@ export default function Upload() {
   const [progress, setProgress] = useState<number | null>(null);
   const [accepted, setAccepted] = useState<UploadAccepted | null>(null);
   const [drag, setDrag] = useState(false);
+  const canUseCloud = user.role === 'admin' && Boolean(user.cloud_llm_enabled);
+  const [approveCloud, setApproveCloud] = useState(canUseCloud);
   const writable = user.role !== 'reader';
 
   const totalBytes = files.reduce((sum, file) => sum + file.size, 0);
@@ -76,17 +78,33 @@ export default function Upload() {
     request.upload.onprogress = event => {
       setProgress(event.lengthComputable ? Math.round((event.loaded / event.total) * 100) : null);
     };
-    request.onload = () => {
-      setBusy(false);
+    request.onload = async () => {
       try {
         const body = JSON.parse(request.responseText);
         if (request.status !== 202) throw new Error(body.error?.message ?? 'Upload was not accepted.');
-        setAccepted(body as UploadAccepted);
+        const batch = body as UploadAccepted;
+        if (canUseCloud && approveCloud) {
+          await Promise.allSettled(
+            batch.documents.map(doc =>
+              api('documents/' + doc.id + '/privacy', {
+                method: 'PATCH',
+                body: JSON.stringify({
+                  data_classification: 'confidential',
+                  cloud_processing_allowed: true,
+                  reason: 'Administrator approved uploaded document for Gemini Cloud AI extraction',
+                }),
+              }),
+            ),
+          );
+        }
+        setAccepted(batch);
         setFiles([]);
         key.current = crypto.randomUUID();
         setProgress(null);
       } catch (error) {
         setErrors([error instanceof Error ? error.message : 'Upload failed.']);
+      } finally {
+        setBusy(false);
       }
     };
     request.onerror = request.ontimeout = () => {
@@ -198,6 +216,21 @@ export default function Upload() {
                 <progress max={100} {...(progress !== null ? { value: progress } : {})} />
                 <small>Processing begins only after the server accepts your batch.</small>
               </div>
+            )}
+
+            {canUseCloud && (
+              <label className="upload-cloud-toggle">
+                <input
+                  type="checkbox"
+                  checked={approveCloud}
+                  disabled={busy}
+                  onChange={event => setApproveCloud(event.target.checked)}
+                />
+                <span>
+                  <strong>Use Gemini Cloud AI for extraction</strong>
+                  <small>Approves uploaded files for fast cloud extraction automatically. Uncheck to keep files local-only with Ollama.</small>
+                </span>
+              </label>
             )}
 
             <div className="upload-actions">

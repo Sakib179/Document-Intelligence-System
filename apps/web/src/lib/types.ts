@@ -6,6 +6,7 @@ export interface User {
   role: 'reader' | 'reviewer' | 'admin';
   tenant_id: string;
   tenant_name: string;
+  cloud_llm_enabled?: boolean;
   upload_limits: {
     max_files: number;
     max_file_bytes: number;

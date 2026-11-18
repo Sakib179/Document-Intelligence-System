@@ -122,13 +122,6 @@ export function Shell({ user, children }: {
             <Icon name={compact ? 'arrow' : 'arrowLeft'} size={14} />
           </button>
         </div>
-        <div className="workspace-switch" title={user.tenant_name}>
-          <span className="workspace-avatar">{user.tenant_name.slice(0, 1)}</span>
-          <span className="workspace-meta">
-            <strong>{user.tenant_name}</strong>
-            <small>Document workspace</small>
-          </span>
-        </div>
         <div className="nav-label">WORKSPACE</div>
         <nav aria-label="Main navigation">{navigation.map(([href, title, icon]) => {
           const active = href === '/' ? path === '/' : path.startsWith(href);

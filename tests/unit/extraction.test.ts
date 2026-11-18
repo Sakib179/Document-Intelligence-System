@@ -168,3 +168,16 @@ it('grounds snake_case Excel financial headers and midnight ISO spreadsheet date
   expect(grounded.tax.value).toBe('10731');
   expect(grounded.total.value).toBe('155311');
 });
+it('normalizes unambiguous thousands-grouped decimal strings in provider responses while preserving verbatim raw_value', async () => {
+  const ctx = extractionContext();
+  ctx.sources[6]!.text = 'Grand Total: 398,215.00';
+  const proposal = mockInvoice(ctx.sources);
+  proposal.total = { value: '398,215.00', raw_value: '398,215.00', evidence: { source_id: ctx.sources[6]!.id, page: 1, worksheet: null, cell: null, text: 'Grand Total: 398,215.00' } };
+  const gemini = mockProvider('gemini', async () => ({ text: JSON.stringify(proposal), modelVersion: 'gemini-test', usage: {} }));
+  const local = mockProvider('local_qwen'); local.extract = vi.fn(local.extract);
+  const result = await extractInvoice(ctx, extractionEnvironment({ CLOUD_LLM_ENABLED: 'true' }), { gemini, local }, hooks());
+  expect(result.provider).toBe('gemini');
+  expect(result.grounded?.total.value).toBe('398215');
+  expect(result.grounded?.total.raw_value).toBe('398,215.00');
+  expect(local.extract).not.toHaveBeenCalled();
+});

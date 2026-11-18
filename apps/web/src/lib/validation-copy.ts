@@ -317,6 +317,8 @@ export interface InvoiceVisualAnalytics {
   composition: {
     subtotalPct: number;
     taxPct: number;
+    subtotalPctLabel: string;
+    taxPctLabel: string;
     effectiveTaxPct: string | null;
   } | null;
   lineShares: Record<string, number>;
@@ -335,10 +337,18 @@ export function computeInvoiceVisualAnalytics(invoice: FinancialInvoice): Invoic
   let composition: InvoiceVisualAnalytics['composition'] = null;
   if (subNum !== null && taxNum !== null && subNum + taxNum > 0) {
     const sum = subNum + taxNum;
-    const subtotalPct = Math.round((subNum / sum) * 1000) / 10;
-    const taxPct = Math.round((taxNum / sum) * 1000) / 10;
-    const effectiveTaxPct = subNum > 0 ? ((taxNum / subNum) * 100).toFixed(1) + '%' : null;
-    composition = { subtotalPct, taxPct, effectiveTaxPct };
+    const subtotalRatio = (subNum / sum) * 100;
+    const taxRatio = (taxNum / sum) * 100;
+    const subtotalPct = Math.round(subtotalRatio * 100) / 100;
+    const taxPct = Math.round(taxRatio * 100) / 100;
+    const effectiveTaxPct = subNum > 0 ? ((taxNum / subNum) * 100).toFixed(2) + '%' : null;
+    composition = {
+      subtotalPct,
+      taxPct,
+      subtotalPctLabel: subtotalRatio.toFixed(2) + '%',
+      taxPctLabel: taxRatio.toFixed(2) + '%',
+      effectiveTaxPct,
+    };
   }
 
   const lineValues = invoice.line_items.map(line => ({ id: line.id, val: visualRatioNumber(line.line_total) ?? 0 }));

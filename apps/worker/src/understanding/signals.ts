@@ -44,6 +44,10 @@ export function pageSignals(text: string, pageNumber: number, worksheet: string 
         const id = identifier(lines[index + 1]);
         if (id) { ids.add(id); add('invoice_identifier', line + ' ' + lines[index + 1]); }
       }
+      // Continuation/header lines like "Invoice INV-2026-1072 - continued line-item and financial details."
+      const inlineIdMatch = /^invoice\s+([\p{L}\p{N}][\p{L}\p{N}./_-]*\d[\p{L}\p{N}./_-]*)(?:\s*[-–—:,]\s*(?:continued|continuation|page|summary|details|line|financial)\b.*)?$/iu.exec(line);
+      const inlineId = identifier(inlineIdMatch?.[1]);
+      if (inlineId) { ids.add(inlineId); add('invoice_identifier', inlineIdMatch![0]); }
     }
     const name = /^(?:supplier|vendor|seller|issued\s+by|merchant|সরবরাহকারী)\s*[:：]\s*(.{2,160})$/iu.exec(line)?.[1];
     if (name) {
@@ -79,11 +83,12 @@ export function pageSignals(text: string, pageNumber: number, worksheet: string 
   else if (invoiceHeader && ids.size === 1) { kind = 'invoice'; confidence = 0.96; }
   else if (invoiceHeader && (supplier || /\b(?:subtotal|amount\s+due|total|invoice\s+date)\b/iu.test(text))) { kind = 'invoice'; confidence = 0.78; }
   else if (ids.size === 1 && supplier) { kind = 'invoice'; confidence = 0.86; }
-  // PDF reading order can attach the title to an adjacent address column.
-  // Require independent identity, date, totals and table signals in that case.
-  else if (ids.size === 1 && /\binvoice\s+date\s*:/iu.test(text)
-    && /\b(?:subtotal|grand\s+total|total\s+amount\s+due)\b/iu.test(text) && table) {
-    kind = 'invoice'; confidence = 0.88; add('invoice_layout_signals', 'Invoice identifier, invoice date, financial total and line-item table');
+  // PDF reading order can attach the title to an adjacent address column, and multi-page
+  // invoices can carry totals on a continuation page while page 1 holds the header and line items.
+  else if (ids.size === 1 && /\binvoice\s+date\s*:/iu.test(text) && table
+    && (/\b(?:subtotal|grand\s+total|total\s+amount\s+due)\b/iu.test(text)
+      || (/\b(?:line\s+total|unit\s+price)\b/iu.test(text) && /\b(?:bill\s+to|due\s+date|currency\s*:|supplier)\b/iu.test(text)))) {
+    kind = 'invoice'; confidence = 0.88; add('invoice_layout_signals', 'Invoice identifier, invoice date, financial layout and line-item table');
   }
   if (invoiceHeader) add('invoice_header', top.find((line) => /invoice|চালান/iu.test(line)) ?? '');
   if (receiptHeader) add('receipt_header', top.find((line) => /receipt|memo|রসিদ/iu.test(line)) ?? '');
